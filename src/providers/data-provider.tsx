@@ -15,6 +15,7 @@ import {
   todayKey,
   uid,
 } from '@/lib/utils'
+import { ACTIVITY_TYPE_LABELS } from '@/lib/constants'
 import type {
   Activity,
   ActivityAttendance,
@@ -31,6 +32,7 @@ import type {
   LeaveRequest,
   LeaveType,
   Period,
+  QrType,
   Role,
   ScanResult,
   School,
@@ -125,6 +127,7 @@ interface DataContextValue {
     lat: number
     lng: number
     deviceId?: string
+    category?: QrType
   }) => ScanResult
   recordManualAttendance: (input: {
     participantId: string
@@ -785,14 +788,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (isPersonalQr && personalQr) {
-        if (
-          !operator ||
-          !['supervisor', 'teacher', 'admin'].includes(operator.role)
-        ) {
+        if (!operator || operator.role !== 'admin') {
           return {
             ok: false,
             message:
-              'QR peserta hanya dapat dipindai oleh pembimbing, guru pembimbing, atau admin PKL.',
+              'QR peserta hanya dapat dipindai oleh Koordinator PKL. Hubungi koordinator untuk mencatat presensi.',
             kind: 'attendance',
           }
         }
@@ -837,7 +837,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       }
       const session = validation?.session
-      const qrType = session?.type ?? 'attendance'
+      const qrType = session?.type ?? input.category ?? 'attendance'
       const studentName = participantName(current, participant.id)
       const logActorId =
         isPersonalQr && operator ? operator.id : participant.userId
@@ -966,21 +966,38 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      const activity = current.activities.find(
-        (item) => item.type === session?.type && item.active,
+      const typeActivities = current.activities.filter(
+        (item) => item.type === qrType && item.active,
       )
-      if (!activity) {
+      if (!typeActivities.length) {
         return {
           ok: false,
-          message: 'Kegiatan ini sedang tidak aktif. Hubungi pembimbing.',
+          message: `Kegiatan ${ACTIVITY_TYPE_LABELS[qrType]} sedang tidak aktif. Hubungi pembimbing.`,
           kind: 'activity',
         }
       }
-      if (!activity.days.includes(getDay(now))) {
+      const scheduledActivities = typeActivities.filter((item) =>
+        item.days.includes(getDay(now)),
+      )
+      if (!scheduledActivities.length) {
         return {
           ok: false,
-          message: `Tidak ada sesi ${activity.name} hari ini.`,
+          message: `Tidak ada sesi ${ACTIVITY_TYPE_LABELS[qrType]} hari ini.`,
           kind: 'activity',
+        }
+      }
+      const activity = scheduledActivities.find(
+        (item) => time >= item.startTime && time <= item.endTime,
+      )
+      if (!activity) {
+        const schedule = scheduledActivities
+          .map((item) => `${item.name} (${item.startTime}–${item.endTime})`)
+          .join(', ')
+        return {
+          ok: false,
+          message: `Di luar jam sesi. Jadwal ${ACTIVITY_TYPE_LABELS[qrType]} hari ini: ${schedule} WIB.`,
+          kind: 'activity',
+          activityName: scheduledActivities[0].name,
         }
       }
       const key = todayKey()
@@ -993,7 +1010,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       if (existingActivity) {
         return {
           ok: false,
-          message: `Kamu sudah mencatat kehadiran ${activity.name} hari ini pukul ${existingActivity.scannedAt ? format(new Date(existingActivity.scannedAt), 'HH:mm') : '-'}.`,
+          message: isPersonalQr
+            ? `${studentName} sudah mencatat kehadiran ${activity.name} hari ini pukul ${existingActivity.scannedAt ? format(new Date(existingActivity.scannedAt), 'HH:mm') : '-'}.`
+            : `Kamu sudah mencatat kehadiran ${activity.name} hari ini pukul ${existingActivity.scannedAt ? format(new Date(existingActivity.scannedAt), 'HH:mm') : '-'}.`,
           kind: 'activity',
           activityName: activity.name,
         }
@@ -1013,10 +1032,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
         pushLog(
           next,
-          participant.userId,
+          logActorId,
           'Presensi kegiatan',
-          `${activity.name} · ${key}`,
-          `Hadir pukul ${time}, jarak ${distance} m.`,
+          `${activity.name} · ${studentName}`,
+          `Hadir pukul ${time}, jarak ${distance} m.${scannedByNote}`,
         )
         return next
       })
@@ -1027,7 +1046,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         time,
         distance,
         activityName: activity.name,
-        message: `Kehadiran ${activity.name} tercatat pukul ${time}.`,
+        message: isPersonalQr
+          ? `Kehadiran ${activity.name} ${studentName} tercatat pukul ${time}.`
+          : `Kehadiran ${activity.name} tercatat pukul ${time}.`,
       }
     } finally {
       scanLock.current = false

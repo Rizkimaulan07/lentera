@@ -1,14 +1,15 @@
 # LENTERA
 
-**Len Internship Realtime Attendance** — aplikasi manajemen Praktik Kerja Lapangan (PKL) untuk PT Len Industri (Persero). Presensi QR dinamis, geofence, izin, jurnal harian, penilaian berbobot, laporan, dan administrasi dalam satu PWA yang responsif.
+**Len Internship Realtime Attendance** — aplikasi manajemen Praktik Kerja Lapangan (PKL) untuk PT Len Industri (Persero). Presensi QR terpusat, geofence, izin, jurnal harian, penilaian berbobot, laporan, dan administrasi dalam satu PWA yang responsif.
 
 > Versi saat ini adalah **MVP frontend** dengan backend simulasi berbasis `localStorage`. Seluruh alur dapat dicoba tanpa server tambahan.
 
 ## Fitur utama
 
-- **Presensi QR dinamis** — token berganti otomatis setiap 30–60 detik, validasi geofence, pencegahan presensi ganda, dan pencatatan masuk/pulang.
-- **QR pribadi peserta** — setiap akun peserta PKL memiliki QR identitas sendiri; pembimbing, guru pembimbing, atau admin memindai QR tersebut lewat menu **Scan Peserta** untuk mencatat kehadiran.
-- **Kegiatan rutin** — presensi Olahraga dan Dhuha dengan jadwal mingguan.
+- **Presensi QR terpusat** — hanya Koordinator PKL yang memindai QR; peserta cukup menunjukkan QR pribadinya. Validasi geofence, pencegahan presensi ganda, dan pencatatan masuk/pulang.
+- **QR pribadi peserta** — setiap akun peserta PKL memiliki QR identitas sendiri yang dipindai Koordinator PKL lewat menu **Scan Peserta**.
+- **Kegiatan rutin** — presensi Olahraga setiap Jumat, dua sesi Dhuha pada pagi hari, dan ambil makan pukul 12.00–13.00. Koordinator memilih jenis presensi sebelum memindai QR peserta, dengan validasi hari dan jam sesi.
+- **Pengingat otomatis** — banner dan notifikasi muncul saat sesi kegiatan dimulai, termasuk pengingat istirahat dan ambil makan pukul 12.00–13.00, presensi masuk, dan presensi pulang.
 - **Perizinan** — pengajuan izin/sakit, lampiran, persetujuan pembimbing, dan pembaruan presensi otomatis.
 - **Jurnal harian** — pengiriman, validasi, catatan revisi, dan riwayat jurnal.
 - **Penilaian** — komponen berbobot, nilai disiplin otomatis dari kehadiran, finalisasi terkunci, serta lembar nilai siap cetak.
@@ -23,10 +24,10 @@ Semua akun menggunakan kata sandi **`lentera123`**.
 
 | Peran | Nama | Username | Fokus demo |
 | --- | --- | --- | --- |
-| Peserta PKL | Nabila Putri | `nabila` | Scan QR, jurnal, izin, nilai |
-| Pembimbing Industri | Rina Kartika | `rina` | Tampilkan QR, validasi, penilaian |
+| Peserta PKL | Nabila Putri | `nabila` | QR pribadi, jurnal, izin, nilai |
+| Pembimbing Industri | Rina Kartika | `rina` | Validasi, penilaian, monitoring |
 | Guru Pembimbing | Ahmad Fauzi | `ahmad` | Monitoring siswa bimbingan |
-| Admin PKL | Koordinator PKL | `admin` | Pengguna, master data, pengaturan |
+| Admin PKL | Koordinator PKL | `admin` | Scan QR peserta, pengguna, master data, pengaturan |
 
 Peserta juga dapat masuk menggunakan **NIS** (contoh: `221001` untuk Nabila).
 
@@ -51,22 +52,22 @@ npm run lint      # oxlint
 
 ## Alur demo yang disarankan
 
-1. Masuk sebagai **Rina** (`rina`) lalu buka menu **Tampilkan QR**.
-2. Pilih jenis QR **Presensi harian**, lalu salin token atau biarkan QR tampil.
-3. Keluar dan masuk sebagai **Nabila** (`nabila`). Buka menu **Scan QR**.
-4. Gunakan **simulasi lokasi PT Len** (default) atau aktifkan GPS asli, lalu tempel token atau pindai QR.
-5. Presensi masuk akan tercatat. Scan token yang masih berlaku sekali lagi untuk mencatat presensi pulang.
-6. Masuk kembali sebagai **Rina** untuk melihat feed scan, memvalidasi izin/jurnal, dan mengisi penilaian.
-7. Masuk sebagai **admin** untuk mencoba pengelolaan pengguna, master data, pengaturan geofence, dan log aktivitas.
+1. Masuk sebagai **admin** (**Koordinator PKL**), lalu buka menu **Scan Peserta**.
+2. Pilih **Jenis presensi** yang ingin dicatat: presensi harian, olahraga, dhuha, atau ambil makan.
+3. Aktifkan **simulasi lokasi PT Len** (default) atau gunakan GPS asli.
+4. Masuk sebagai **Nabila** (`nabila`), buka menu **QR Saya**, lalu tunjukkan QR pribadinya kepada Koordinator PKL.
+5. Koordinator memindai QR Nabila (atau menekan tombol **Scan** pada daftar peserta untuk simulasi). Presensi masuk akan tercatat; pindai sekali lagi untuk presensi pulang.
+6. Untuk kegiatan rutin, pilih jenis presensi yang sesuai pada jam sesinya. Contoh: **Ambil makan** pukul 12.00–13.00 atau **Olahraga** pada hari Jumat.
+7. Masuk sebagai **Rina** atau **Ahmad** untuk memvalidasi izin/jurnal, melihat rekap, dan mengisi penilaian.
 
 ### Presensi dengan QR pribadi peserta
 
 1. Masuk sebagai **Nabila**, buka menu **QR Saya** dan biarkan QR pribadi tampil.
-2. Masuk sebagai **Rina**, buka menu **Scan Peserta**, lalu pindai QR Nabila (atau tekan tombol **Scan** pada daftar peserta untuk simulasi).
+2. Masuk sebagai **admin** (**Koordinator PKL**), buka menu **Scan Peserta**, pilih jenis presensi, lalu pindai QR Nabila (atau tekan tombol **Scan** pada daftar peserta untuk simulasi).
 3. Presensi masuk Nabila tercatat. Pindai QR yang sama sekali lagi untuk mencatat presensi pulang.
 4. Peserta lain juga memiliki QR pribadi masing-masing pada menu **QR Saya**.
 
-Catatan: Nabila sengaja belum memiliki presensi hari ini agar alur scan dapat diuji dari awal. Peserta lain sudah memiliki data contoh.
+Catatan: peserta tidak memiliki menu pemindaian QR. Pemindaian QR peserta hanya dapat dilakukan oleh Koordinator PKL; pembimbing dan guru pembimbing tetap dapat melihat rekap presensi. Nabila sengaja belum memiliki presensi hari ini agar alur scan dapat diuji dari awal. Peserta lain sudah memiliki data contoh.
 
 ## Penyimpanan data
 
@@ -74,7 +75,7 @@ Data demo disimpan di browser:
 
 - `lentera.data.v1` — seluruh data aplikasi
 - `lentera.auth.v1` — sesi pengguna aktif
-- `lentera.qr.sessions.v1` — sesi token QR
+- `lentera.reminders.v1` — catatan pengingat yang sudah ditampilkan hari ini
 - `lentera.theme` — preferensi tema
 
 Untuk mengembalikan data awal, masuk sebagai admin lalu buka **Pengaturan → Reset data demo**. Menghapus data situs melalui pengaturan browser juga akan memulai ulang data seed.

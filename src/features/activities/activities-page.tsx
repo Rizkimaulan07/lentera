@@ -6,7 +6,6 @@ import {
   Clock3,
   Dumbbell,
   QrCode,
-  Sparkles,
   TrendingUp,
   Users,
 } from 'lucide-react'
@@ -24,6 +23,7 @@ import { Progress } from '@/components/ui/progress'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard } from '@/components/shared/stat-card'
 import { DataTable } from '@/components/shared/data-table'
+import { ActivityIcon } from '@/components/shared/activity-icon'
 import { useAuth } from '@/providers/auth-provider'
 import { useData } from '@/providers/data-provider'
 import {
@@ -50,6 +50,7 @@ export function ActivitiesPage() {
   const today = new Date()
   const day = today.getDay()
   const todayKeyValue = todayKey()
+  const nowTime = formatTime(today)
   const participant = getParticipantByUserId(data.participants, user.id)
   const isParticipant = user.role === 'participant'
 
@@ -125,7 +126,7 @@ export function ActivitiesPage() {
         return (
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              {activity?.type === 'sports' ? <Dumbbell className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
+              <ActivityIcon type={activity?.type ?? 'dhuha'} className="h-3.5 w-3.5" />
             </span>
             <div>
               <p className="text-xs font-bold">{activity?.name}</p>
@@ -201,28 +202,26 @@ export function ActivitiesPage() {
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
         eyebrow="Kegiatan rutin"
-        title="Olahraga & dhuha"
-        description="Presensi kegiatan rutin memiliki sesi dan QR terpisah dari presensi harian."
+        title="Olahraga, dhuha & makan"
+        description="Presensi kegiatan rutin memiliki sesi dan QR terpisah dari presensi harian. Olahraga setiap Jumat, dua sesi dhuha pada pagi hari, dan ambil makan pukul 12.00–13.00."
         actions={
-          user.role === 'supervisor' || user.role === 'admin' ? (
+          user.role === 'admin' ? (
             <>
-              <Link to="/qr" className={buttonVariants({ variant: 'outline' })}>
+              <Link to="/scan-peserta" className={buttonVariants({ variant: 'outline' })}>
                 <QrCode className="h-4 w-4" />
-                QR kegiatan
+                Scan peserta
               </Link>
-              {user.role === 'admin' ? (
-                <Link to="/admin/settings" className={buttonVariants()}>
-                  <CalendarDays className="h-4 w-4" />
-                  Kelola jadwal
-                </Link>
-              ) : null}
+              <Link to="/admin/master" className={buttonVariants()}>
+                <CalendarDays className="h-4 w-4" />
+                Kelola jadwal
+              </Link>
             </>
-          ) : (
-            <Link to="/scan" className={buttonVariants()}>
+          ) : user.role === 'participant' ? (
+            <Link to="/my-qr" className={buttonVariants()}>
               <QrCode className="h-4 w-4" />
-              Scan kegiatan
+              Tunjukkan QR
             </Link>
-          )
+          ) : undefined
         }
       />
 
@@ -230,7 +229,7 @@ export function ActivitiesPage() {
         <StatCard
           label="Kegiatan aktif"
           value={data.activities.filter((item) => item.active).length}
-          hint="olahraga & dhuha"
+          hint="olahraga, dhuha & makan"
           icon={Dumbbell}
           tone="primary"
         />
@@ -272,7 +271,7 @@ export function ActivitiesPage() {
                 className="flex flex-col gap-3 rounded-xl border border-border/70 p-3 sm:flex-row sm:items-center"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  {activity.type === 'sports' ? <Dumbbell className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+                  <ActivityIcon type={activity.type} className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -291,11 +290,15 @@ export function ActivitiesPage() {
                       <CheckCircle2 className="h-3 w-3" />
                       Hadir pukul {record.scannedAt ? formatTime(record.scannedAt) : '-'}
                     </Badge>
-                  ) : (
-                    <Link to="/scan" className={buttonVariants({ size: 'sm' })}>
+                  ) : nowTime >= activity.startTime && nowTime <= activity.endTime ? (
+                    <Link to="/my-qr" className={buttonVariants({ size: 'sm' })}>
                       <QrCode className="h-3.5 w-3.5" />
-                      Scan sekarang
+                      Tunjukkan QR
                     </Link>
+                  ) : (
+                    <Badge variant={nowTime > activity.endTime ? 'secondary' : 'warning'}>
+                      {nowTime > activity.endTime ? 'Sesi berakhir' : 'Belum mulai'}
+                    </Badge>
                   )
                 ) : (
                   <Badge variant="secondary">{presentCount} peserta hadir</Badge>
@@ -368,7 +371,7 @@ export function ActivitiesPage() {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    {recap.type === 'sports' ? <Dumbbell className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                    <ActivityIcon type={recap.type} className="h-4 w-4" />
                   </span>
                   <div>
                     <p className="text-xs font-bold">{recap.name}</p>

@@ -21,7 +21,7 @@ import {
   Filter,
   Plus,
   Printer,
-  ScanLine,
+  QrCode,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -313,9 +313,9 @@ export function AttendancePage() {
         }
         actions={
           user.role === 'participant' ? (
-            <Link to="/scan" className={buttonVariants()}>
-              <ScanLine className="h-4 w-4" />
-              Scan QR
+            <Link to="/my-qr" className={buttonVariants()}>
+              <QrCode className="h-4 w-4" />
+              Tunjukkan QR
             </Link>
           ) : (
             <>

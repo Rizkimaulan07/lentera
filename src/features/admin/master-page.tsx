@@ -11,7 +11,6 @@ import {
   Save,
   School,
   Trash2,
-  Users,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -38,6 +37,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { PageHeader } from '@/components/shared/page-header'
+import { ActivityIcon } from '@/components/shared/activity-icon'
 import { StatCard } from '@/components/shared/stat-card'
 import { useAuth } from '@/providers/auth-provider'
 import { useData } from '@/providers/data-provider'
@@ -628,7 +628,7 @@ export function AdminMasterPage() {
               <div>
                 <CardTitle>Kegiatan rutin</CardTitle>
                 <CardDescription>
-                  Olahraga dan Dhuha yang wajib diikuti peserta sesuai jadwal.
+                  Olahraga, dua sesi Dhuha, dan absen ambil makan sesuai jadwal.
                 </CardDescription>
               </div>
               <Button size="sm" onClick={() => openActivity()}>
@@ -644,11 +644,7 @@ export function AdminMasterPage() {
                 >
                   <div className="flex items-start gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      {activity.type === 'sports' ? (
-                        <Dumbbell className="h-5 w-5" />
-                      ) : (
-                        <Users className="h-5 w-5" />
-                      )}
+                      <ActivityIcon type={activity.type} className="h-5 w-5" />
                     </span>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -735,6 +731,7 @@ export function AdminMasterPage() {
               >
                 <option value="dhuha">Dhuha</option>
                 <option value="sports">Olahraga</option>
+                <option value="meal">Ambil makan</option>
               </Select>
             </div>
             <div className="space-y-2">

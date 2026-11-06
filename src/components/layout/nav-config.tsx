@@ -10,8 +10,6 @@ import {
   IdCard,
   LayoutDashboard,
   Megaphone,
-  QrCode,
-  ScanLine,
   ScanQrCode,
   ScrollText,
   Settings,
@@ -49,12 +47,6 @@ export const navGroups: NavGroup[] = [
         end: true,
       },
       {
-        label: 'Scan QR',
-        href: '/scan',
-        icon: ScanLine,
-        roles: ['participant'],
-      },
-      {
         label: 'QR Saya',
         href: '/my-qr',
         icon: IdCard,
@@ -64,13 +56,7 @@ export const navGroups: NavGroup[] = [
         label: 'Scan Peserta',
         href: '/scan-peserta',
         icon: ScanQrCode,
-        roles: ['supervisor', 'teacher', 'admin'],
-      },
-      {
-        label: 'Tampilkan QR',
-        href: '/qr',
-        icon: QrCode,
-        roles: ['supervisor', 'admin'],
+        roles: ['admin'],
       },
       {
         label: 'Presensi & Rekap',
@@ -186,7 +172,7 @@ export function findNavItem(pathname: string): NavItem | undefined {
 }
 
 const mobilePaths: Record<Role, string[]> = {
-  participant: ['/', '/scan', '/my-qr', '/journals'],
+  participant: ['/', '/my-qr', '/activities', '/journals'],
   supervisor: ['/', '/attendance', '/participants', '/reports'],
   teacher: ['/', '/attendance', '/participants', '/journals'],
   admin: ['/', '/attendance', '/participants', '/admin/users'],
@@ -194,12 +180,12 @@ const mobilePaths: Record<Role, string[]> = {
 
 const mobileLabels: Record<string, string> = {
   '/': 'Beranda',
-  '/scan': 'Scan',
   '/my-qr': 'QR Saya',
   '/attendance': 'Presensi',
   '/participants': 'Peserta',
   '/reports': 'Laporan',
   '/journals': 'Jurnal',
+  '/activities': 'Kegiatan',
   '/admin/users': 'Pengguna',
 }
 

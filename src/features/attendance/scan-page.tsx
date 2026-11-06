@@ -32,6 +32,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/shared/page-header'
 import { AttendanceBadge } from '@/components/shared/status-badge'
+import { ActivityIcon } from '@/components/shared/activity-icon'
 import { CameraScanner } from '@/features/attendance/camera-scanner'
 import { useAuth } from '@/providers/auth-provider'
 import { useData } from '@/providers/data-provider'
@@ -42,8 +43,10 @@ import {
   cn,
   distanceInMeters,
   formatDate,
+  formatTime,
   getParticipantByUserId,
   summarizeAttendance,
+  todayKey,
 } from '@/lib/utils'
 import type { ScanResult } from '@/types'
 
@@ -94,6 +97,11 @@ export function ScanPage() {
   const today = todayAttendance(data, participant.id)
   const records = participantRecords(data, participant.id)
   const summary = summarizeAttendance(records)
+  const now = new Date()
+  const nowTime = formatTime(now)
+  const activitySessions = data.activities.filter(
+    (activity) => activity.active && activity.days.includes(now.getDay()),
+  )
   const coords = useSimulation
     ? { lat: data.settings.latitude, lng: data.settings.longitude }
     : realCoords
@@ -228,9 +236,9 @@ export function ScanPage() {
   return (
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
-        eyebrow="Presensi harian"
+        eyebrow="Presensi harian & kegiatan"
         title="Scan QR presensi"
-        description="Pindai QR dari layar pembimbing untuk mencatat kehadiran masuk atau pulang. Pastikan kamu berada di area PT Len."
+        description="Pindai QR dari layar pembimbing untuk mencatat kehadiran harian, olahraga Jumat, dhuha, atau ambil makan sesuai jam sesi. Pastikan kamu berada di area PT Len."
         actions={
           <Badge variant={today ? 'success' : 'warning'} className="h-8 px-3">
             <span className={cn('h-1.5 w-1.5 rounded-full', today ? 'bg-emerald-500' : 'bg-amber-500')} />
@@ -470,6 +478,68 @@ export function ScanPage() {
 
           <Card>
             <CardHeader>
+              <CardTitle>Jadwal kegiatan hari ini</CardTitle>
+              <CardDescription>
+                Olahraga Jumat, dua sesi dhuha, dan ambil makan pukul 12.00–13.00.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {activitySessions.map((activity) => {
+                const live =
+                  nowTime >= activity.startTime && nowTime <= activity.endTime
+                const finished = nowTime > activity.endTime
+                const attended = data.activityAttendances.some(
+                  (item) =>
+                    item.activityId === activity.id &&
+                    item.participantId === participant.id &&
+                    item.date === todayKey(),
+                )
+                return (
+                  <div
+                    key={activity.id}
+                    className="flex items-center gap-2.5 rounded-xl border border-border/70 px-3 py-2"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <ActivityIcon type={activity.type} className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[11px] font-bold">{activity.name}</p>
+                      <p className="text-[9px] text-muted-foreground">
+                        {activity.startTime} – {activity.endTime} WIB
+                      </p>
+                    </div>
+                    <Badge
+                      variant={
+                        attended
+                          ? 'success'
+                          : live
+                            ? 'warning'
+                            : finished
+                              ? 'secondary'
+                              : 'outline'
+                      }
+                    >
+                      {attended
+                        ? 'Sudah absen'
+                        : live
+                          ? 'Berlangsung'
+                          : finished
+                            ? 'Selesai'
+                            : 'Belum mulai'}
+                    </Badge>
+                  </div>
+                )
+              })}
+              {activitySessions.length === 0 ? (
+                <p className="py-4 text-center text-[10px] text-muted-foreground">
+                  Tidak ada kegiatan rutin hari ini.
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Aturan validasi</CardTitle>
               <CardDescription>Presensi diproses otomatis oleh sistem.</CardDescription>
             </CardHeader>
@@ -478,6 +548,7 @@ export function ScanPage() {
                 { icon: Timer, text: `Token hanya berlaku ${data.settings.qrDuration} detik dan berganti otomatis.` },
                 { icon: MapPin, text: `Lokasi harus dalam radius ${data.settings.radius} meter dari titik presensi.` },
                 { icon: ShieldCheck, text: 'Satu peserta hanya dapat presensi masuk dan pulang satu kali per hari.' },
+                { icon: QrCode, text: 'QR kegiatan hanya dapat discan pada hari dan jam sesi yang tertera.' },
                 { icon: Clock3, text: `Presensi setelah ${data.settings.lateLimit} WIB otomatis berstatus Terlambat.` },
               ].map((rule) => (
                 <div key={rule.text} className="flex gap-2.5 text-[11px] leading-relaxed text-muted-foreground">

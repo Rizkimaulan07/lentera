@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/shared/page-header'
@@ -37,13 +38,14 @@ import {
   activePklParticipants,
   todayAttendance,
 } from '@/lib/analytics'
+import { QR_TYPE_LABELS } from '@/lib/constants'
 import {
   findParticipantByQrToken,
   participantQrToken,
   parseParticipantQr,
 } from '@/lib/participant-qr'
-import { cn, distanceInMeters } from '@/lib/utils'
-import type { Participant, ScanResult } from '@/types'
+import { cn, distanceInMeters, formatTime, todayKey } from '@/lib/utils'
+import type { Participant, QrType, ScanResult } from '@/types'
 
 function deviceId() {
   const key = 'lentera.device.v1'
@@ -58,6 +60,7 @@ export function ScanParticipantPage() {
   const { user } = useAuth()
   const { data, processScan } = useData()
   const [tab, setTab] = React.useState('camera')
+  const [category, setCategory] = React.useState<QrType>('attendance')
   const [token, setToken] = React.useState('')
   const [result, setResult] = React.useState<ScanResult | null>(null)
   const [scannedName, setScannedName] = React.useState('')
@@ -70,13 +73,26 @@ export function ScanParticipantPage() {
   if (!user) return null
 
   const activePeriod = data.periods.find((item) => item.active)
-  const scoped = activePklParticipants(data)
-  const participants =
-    user.role === 'supervisor'
-      ? scoped.filter((item) => item.supervisorId === user.id)
-      : user.role === 'teacher'
-        ? scoped.filter((item) => item.teacherId === user.id)
-        : scoped
+  const participants = activePklParticipants(data)
+  const now = new Date()
+  const nowTime = formatTime(now)
+  const categorySessions =
+    category === 'attendance'
+      ? []
+      : data.activities.filter(
+          (activity) =>
+            activity.active &&
+            activity.type === category &&
+            activity.days.includes(now.getDay()),
+        )
+  const liveSession = categorySessions.find(
+    (activity) =>
+      nowTime >= activity.startTime && nowTime <= activity.endTime,
+  )
+  const categoryActivityIds = new Set(
+    categorySessions.map((activity) => activity.id),
+  )
+  const categoryDate = todayKey()
 
   const coords = useSimulation
     ? { lat: data.settings.latitude, lng: data.settings.longitude }
@@ -175,6 +191,7 @@ export function ScanParticipantPage() {
         lat: point.lat,
         lng: point.lng,
         deviceId: device,
+        category,
       })
       setResult(scanResult)
       if (scanResult.ok) {
@@ -209,9 +226,9 @@ export function ScanParticipantPage() {
   return (
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
-        eyebrow="Presensi peserta"
+        eyebrow="Khusus Koordinator PKL"
         title="Scan QR peserta"
-        description="Pindai QR pribadi dari akun peserta PKL untuk mencatat presensi masuk atau pulang."
+        description="Pindai QR pribadi peserta PKL untuk mencatat presensi masuk atau pulang. Menu ini hanya dapat diakses oleh Koordinator PKL."
         actions={
           <Badge variant="secondary" className="h-8 px-3">
             <Users className="h-3 w-3" />
@@ -225,10 +242,58 @@ export function ScanParticipantPage() {
           <CardHeader>
             <CardTitle>Pindai QR peserta</CardTitle>
             <CardDescription>
-              Gunakan kamera atau masukkan token peserta secara manual.
+              Pilih jenis presensi, lalu gunakan kamera atau masukkan token peserta.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="scan-category">Jenis presensi</Label>
+              <Select
+                id="scan-category"
+                value={category}
+                onChange={(event) => {
+                  setCategory(event.target.value as QrType)
+                  setResult(null)
+                }}
+              >
+                {(
+                  ['attendance', 'sports', 'dhuha', 'meal'] as QrType[]
+                ).map((value) => (
+                  <option key={value} value={value}>
+                    {value === 'attendance'
+                      ? 'Presensi harian (masuk/pulang)'
+                      : QR_TYPE_LABELS[value]}
+                  </option>
+                ))}
+              </Select>
+              {category === 'attendance' ? (
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  Presensi harian mencatat jam masuk atau pulang peserta.
+                </p>
+              ) : liveSession ? (
+                <p className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Sesi aktif: {liveSession.name} ({liveSession.startTime}–
+                  {liveSession.endTime} WIB)
+                </p>
+              ) : categorySessions.length ? (
+                <p className="text-[10px] leading-relaxed text-amber-600 dark:text-amber-400">
+                  Belum ada sesi aktif. Jadwal hari ini:{' '}
+                  {categorySessions
+                    .map(
+                      (activity) =>
+                        `${activity.name} (${activity.startTime}–${activity.endTime})`,
+                    )
+                    .join(', ')}{' '}
+                  WIB.
+                </p>
+              ) : (
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  Tidak ada sesi {QR_TYPE_LABELS[category]} hari ini.
+                </p>
+              )}
+            </div>
+
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="w-full">
                 <TabsTrigger value="camera" className="flex-1">
@@ -369,7 +434,11 @@ export function ScanParticipantPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold">
-                      {result.ok ? 'Presensi berhasil' : 'Presensi gagal'}
+                      {result.ok
+                        ? result.kind === 'activity'
+                          ? 'Presensi kegiatan berhasil'
+                          : 'Presensi berhasil'
+                        : 'Presensi gagal'}
                     </p>
                     {scannedName ? (
                       <p className="text-[11px] font-semibold text-muted-foreground">
@@ -380,6 +449,9 @@ export function ScanParticipantPage() {
                       {result.message}
                     </p>
                     <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {result.activityName ? (
+                        <Badge variant="info">{result.activityName}</Badge>
+                      ) : null}
                       {result.status ? (
                         <Badge variant={result.ok ? 'success' : 'danger'}>
                           {result.status}
@@ -437,7 +509,16 @@ export function ScanParticipantPage() {
                 const account = data.users.find(
                   (item) => item.id === participant.userId,
                 )
-                const today = todayAttendance(data, participant.id)
+                const dailyAttendance = todayAttendance(data, participant.id)
+                const categoryRecord =
+                  category === 'attendance'
+                    ? undefined
+                    : data.activityAttendances.find(
+                        (item) =>
+                          item.participantId === participant.id &&
+                          item.date === categoryDate &&
+                          categoryActivityIds.has(item.activityId),
+                      )
                 const isSelf = participant.userId === user.id
                 return (
                   <div
@@ -455,8 +536,14 @@ export function ScanParticipantPage() {
                         {participant.className}
                       </p>
                     </div>
-                    {today ? (
-                      <AttendanceBadge status={today.status} />
+                    {category === 'attendance' ? (
+                      dailyAttendance ? (
+                        <AttendanceBadge status={dailyAttendance.status} />
+                      ) : (
+                        <Badge variant="warning">Belum</Badge>
+                      )
+                    ) : categoryRecord ? (
+                      <Badge variant="success">Hadir</Badge>
                     ) : (
                       <Badge variant="warning">Belum</Badge>
                     )}
@@ -479,7 +566,7 @@ export function ScanParticipantPage() {
               })}
               {participants.length === 0 ? (
                 <p className="py-6 text-center text-[11px] text-muted-foreground">
-                  Belum ada peserta PKL aktif pada bimbinganmu.
+                  Belum ada peserta PKL aktif pada periode ini.
                 </p>
               ) : null}
             </CardContent>
@@ -489,14 +576,18 @@ export function ScanParticipantPage() {
             <CardHeader>
               <CardTitle>Aturan pemindaian</CardTitle>
               <CardDescription>
-                QR peserta menggantikan token area untuk presensi harian.
+                QR peserta dipakai untuk presensi harian dan kegiatan rutin.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2.5">
               {[
                 {
                   icon: ShieldCheck,
-                  text: 'Hanya pembimbing, guru pembimbing, dan admin yang boleh memindai QR peserta.',
+                  text: 'Hanya Koordinator PKL yang boleh memindai QR peserta. Pembimbing dan guru pembimbing tetap dapat melihat rekap presensi.',
+                },
+                {
+                  icon: Clock3,
+                  text: 'Pilih jenis presensi sebelum memindai. Presensi kegiatan hanya dapat dicatat pada hari dan jam sesi yang aktif.',
                 },
                 {
                   icon: QrCode,

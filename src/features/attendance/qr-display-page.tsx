@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import { format, getDay } from 'date-fns'
 import {
   Check,
   Clock3,
@@ -51,13 +52,24 @@ export function QrDisplayPage() {
   if (!user) return null
 
   const today = todayKey()
+  const now = new Date()
+  const currentTime = format(now, 'HH:mm')
 
   const participantIds =
     user.role === 'supervisor'
       ? participantsForSupervisor(data, user.id).map((item) => item.id)
       : data.participants.map((item) => item.id)
 
-  const activity = data.activities.find((item) => item.type === type)
+  const typeActivities = data.activities.filter(
+    (item) => item.type === type && item.active,
+  )
+  const activityIds = new Set(typeActivities.map((item) => item.id))
+  const todayActivities = typeActivities.filter((item) =>
+    item.days.includes(getDay(now)),
+  )
+  const currentActivity = todayActivities.find(
+    (item) => currentTime >= item.startTime && currentTime <= item.endTime,
+  )
   const attendanceToday = data.attendances.filter(
     (item) => item.date === today && participantIds.includes(item.participantId),
   )
@@ -65,12 +77,20 @@ export function QrDisplayPage() {
     (item) =>
       item.date === today &&
       participantIds.includes(item.participantId) &&
-      (type === 'attendance' || item.activityId === activity?.id),
+      (type === 'attendance' || activityIds.has(item.activityId)),
   )
   const scannedCount =
     type === 'attendance'
-      ? attendanceToday.filter((item) => item.checkIn).length
-      : activityToday.filter((item) => item.status === 'present').length
+      ? new Set(
+          attendanceToday
+            .filter((item) => item.checkIn)
+            .map((item) => item.participantId),
+        ).size
+      : new Set(
+          activityToday
+            .filter((item) => item.status === 'present')
+            .map((item) => item.participantId),
+        ).size
   const targetCount = participantIds.length
 
   const copyToken = async () => {
@@ -241,7 +261,7 @@ export function QrDisplayPage() {
               <CardDescription>
                 {type === 'attendance'
                   ? 'Peserta yang sudah presensi harian hari ini.'
-                  : `Kehadiran ${activity?.name ?? ACTIVITY_TYPE_LABELS[type]} hari ini.`}
+                  : `Kehadiran ${ACTIVITY_TYPE_LABELS[type]} hari ini.`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -258,6 +278,44 @@ export function QrDisplayPage() {
                 </div>
               </div>
 
+              {type !== 'attendance' ? (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Sesi hari ini
+                  </p>
+                  {todayActivities.length ? (
+                    todayActivities.map((item) => {
+                      const isLive = currentActivity?.id === item.id
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between gap-2 rounded-xl border border-border/70 px-3 py-2"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-[11px] font-bold">{item.name}</p>
+                            <p className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                              <Clock3 className="h-3 w-3" />
+                              {item.startTime} – {item.endTime} WIB
+                            </p>
+                          </div>
+                          <Badge variant={isLive ? 'success' : 'secondary'}>
+                            {isLive
+                              ? 'Berlangsung'
+                              : currentTime > item.endTime
+                                ? 'Selesai'
+                                : 'Terjadwal'}
+                          </Badge>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <p className="rounded-xl bg-muted/50 p-3 text-[10px] text-muted-foreground">
+                      Tidak ada sesi {ACTIVITY_TYPE_LABELS[type]} hari ini.
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
               <div className="space-y-2">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Petunjuk
@@ -265,7 +323,7 @@ export function QrDisplayPage() {
                 {[
                   'Tampilkan QR di area kerja peserta.',
                   'Minta peserta membuka menu Scan QR.',
-                  'Token berganti otomatis setiap beberapa detik.',
+                  'QR kegiatan hanya bisa discan pada jam sesi.',
                   'Jangan bagikan screenshot QR ke grup chat.',
                 ].map((text, index) => (
                   <div key={text} className="flex gap-2 text-[11px] leading-relaxed text-muted-foreground">
@@ -324,6 +382,9 @@ export function QrDisplayPage() {
                     })
                 : activityToday
                     .filter((item) => item.status === 'present')
+                    .sort((a, b) =>
+                      (b.scannedAt ?? '').localeCompare(a.scannedAt ?? ''),
+                    )
                     .slice(0, 5)
                     .map((item) => {
                       const participant = data.participants.find(
@@ -332,12 +393,16 @@ export function QrDisplayPage() {
                       const student = data.users.find(
                         (candidate) => candidate.id === participant?.userId,
                       )
+                      const recordActivity = typeActivities.find(
+                        (candidate) => candidate.id === item.activityId,
+                      )
                       return (
                         <div key={item.id} className="flex items-center gap-2.5 rounded-xl px-1 py-2">
                           <Avatar name={student?.name ?? 'Peserta'} size="xs" />
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[11px] font-bold">{student?.name}</p>
                             <p className="text-[9px] text-muted-foreground">
+                              {recordActivity?.name ?? ACTIVITY_TYPE_LABELS[type]} ·{' '}
                               {item.scannedAt ? formatTime(item.scannedAt) : '-'} WIB
                             </p>
                           </div>

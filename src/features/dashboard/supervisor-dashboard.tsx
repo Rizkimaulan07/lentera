@@ -7,8 +7,6 @@ import {
   ClipboardCheck,
   Clock3,
   FileText,
-  QrCode,
-  ScanQrCode,
   TriangleAlert,
   Users,
 } from 'lucide-react'
@@ -72,14 +70,6 @@ export function SupervisorDashboard() {
         description={`${todayLabel()} · ${division?.name ?? 'Pembimbing industri'} · ${participants.length} peserta bimbingan`}
         actions={
           <>
-            <Link to="/scan-peserta" className={buttonVariants({ variant: 'outline' })}>
-              <ScanQrCode className="h-4 w-4" />
-              Scan peserta
-            </Link>
-            <Link to="/qr" className={buttonVariants({ variant: 'outline' })}>
-              <QrCode className="h-4 w-4" />
-              Tampilkan QR
-            </Link>
             <Link to="/attendance" className={buttonVariants()}>
               <CalendarCheck className="h-4 w-4" />
               Rekap kehadiran

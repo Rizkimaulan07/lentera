@@ -65,7 +65,7 @@ export interface Attendance {
   note?: string
 }
 
-export type ActivityType = 'sports' | 'dhuha'
+export type ActivityType = 'sports' | 'dhuha' | 'meal'
 
 export interface Activity {
   id: string

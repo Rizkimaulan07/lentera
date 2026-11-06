@@ -103,7 +103,7 @@ export function ParticipantQrPage() {
           <CardHeader>
             <CardTitle>QR pribadi</CardTitle>
             <CardDescription>
-              Pindai QR ini dari menu <span className="font-semibold text-foreground">Scan Peserta</span> milik pembimbing.
+              Pindai QR ini dari menu <span className="font-semibold text-foreground">Scan Peserta</span> milik Koordinator PKL.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -161,8 +161,8 @@ export function ParticipantQrPage() {
               </div>
 
               <p className="mt-4 max-w-xs text-center text-[10px] leading-relaxed text-muted-foreground">
-                Token ini mewakili akunmu. Pembimbing memindainya untuk mencatat
-                presensi masuk dan pulang.
+                Token ini mewakili akunmu. Koordinator PKL memindainya untuk
+                mencatat presensi masuk dan pulang.
               </p>
 
               <div className="mt-5 flex w-full max-w-sm flex-col gap-2 sm:flex-row">
@@ -172,13 +172,6 @@ export function ParticipantQrPage() {
                 >
                   <CalendarCheck className="h-4 w-4" />
                   Lihat presensi
-                </Link>
-                <Link
-                  to="/scan"
-                  className={buttonVariants({ variant: 'secondary', className: 'flex-1' })}
-                >
-                  <QrCode className="h-4 w-4" />
-                  Scan QR area
                 </Link>
               </div>
             </div>
@@ -256,8 +249,8 @@ export function ParticipantQrPage() {
             <CardContent className="space-y-2">
               {[
                 'Datang ke area PT Len pada hari kerja PKL.',
-                'Tunjukkan halaman ini kepada pembimbing atau guru pembimbing.',
-                'Pembimbing memindai QR melalui menu Scan Peserta.',
+                'Tunjukkan halaman ini kepada Koordinator PKL.',
+                'Koordinator PKL memindai QR melalui menu Scan Peserta.',
                 'Presensi masuk dan pulang tercatat otomatis di akunmu.',
               ].map((text, index) => (
                 <div

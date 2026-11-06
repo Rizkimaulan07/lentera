@@ -1,6 +1,7 @@
 import { getDay, subDays } from 'date-fns'
 import type {
   ActivityAttendance,
+  ActivityType,
   AppData,
   Attendance,
   AttendanceStatus,
@@ -126,7 +127,7 @@ export function activityRecapAll(data: AppData, participantIds?: string[]) {
 function recapFromRecords(
   id: string,
   name: string,
-  type: string,
+  type: ActivityType,
   records: ActivityAttendance[],
 ) {
   const present = records.filter((item) => item.status === 'present').length

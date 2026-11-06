@@ -475,10 +475,10 @@ leaveSeeds
       })
   })
 
-const activities: Activity[] = [
+export const defaultActivities: Activity[] = [
   {
     id: 'act_sports',
-    name: 'Olahraga Pagi',
+    name: 'Olahraga Jumat',
     type: 'sports',
     days: [5],
     startTime: '06:30',
@@ -496,7 +496,43 @@ const activities: Activity[] = [
     active: true,
     mandatory: true,
   },
+  {
+    id: 'act_dhuha_2',
+    name: 'Dhuha Kedua',
+    type: 'dhuha',
+    days: [1, 2, 3, 4, 5],
+    startTime: '07:30',
+    endTime: '07:50',
+    active: true,
+    mandatory: true,
+  },
+  {
+    id: 'act_meal',
+    name: 'Ambil Makan Siang',
+    type: 'meal',
+    days: [0, 1, 2, 3, 4, 5, 6],
+    startTime: '12:00',
+    endTime: '13:00',
+    active: true,
+    mandatory: false,
+  },
 ]
+
+/**
+ * Pastikan kegiatan bawaan (olahraga, dua sesi dhuha, dan ambil makan) selalu
+ * tersedia, termasuk untuk data demo yang sudah tersimpan di localStorage.
+ */
+export function withDefaultActivities(activities: Activity[] | undefined) {
+  const current = activities ?? []
+  const missing = defaultActivities.filter(
+    (activity) => !current.some((item) => item.id === activity.id),
+  )
+  if (!missing.length) return current
+  return [
+    ...current,
+    ...missing.map((activity) => ({ ...activity, days: [...activity.days] })),
+  ]
+}
 
 const activityAttendances: ActivityAttendance[] = []
 const recentWorkdays = eachDayOfInterval({
@@ -507,10 +543,15 @@ const recentWorkdays = eachDayOfInterval({
 participants.forEach((participant, participantIndex) => {
   recentWorkdays.forEach((date, index) => {
     const day = getDay(date)
-    activities.forEach((activity) => {
+    defaultActivities.forEach((activity) => {
       if (!activity.days.includes(day)) return
       if (activity.type === 'dhuha' && index > 14) return
-      const roll = seeded(participantIndex * 61 + index * 19 + (activity.type === 'sports' ? 5 : 11))
+      const activityIndex = defaultActivities.findIndex(
+        (item) => item.id === activity.id,
+      )
+      const roll = seeded(
+        participantIndex * 61 + index * 19 + activityIndex * 7 + 5,
+      )
       activityAttendances.push({
         id: `aa_${activity.id}_${participant.id}_${dateKey(date)}`,
         activityId: activity.id,
@@ -880,7 +921,10 @@ export function createSeedData(): AppData {
     periods,
     participants,
     attendances: attendance,
-    activities,
+    activities: defaultActivities.map((activity) => ({
+      ...activity,
+      days: [...activity.days],
+    })),
     activityAttendances,
     leaves: leaveSeeds,
     journals,

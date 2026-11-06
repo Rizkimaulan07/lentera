@@ -3,6 +3,10 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { MobileNav } from '@/components/layout/mobile-nav'
+import {
+  ScheduleReminderBanner,
+  ScheduleReminderToasts,
+} from '@/components/layout/schedule-reminder'
 
 export function AppLayout() {
   const [menuOpen, setMenuOpen] = React.useState(false)
@@ -55,6 +59,7 @@ export function AppLayout() {
       <div className="lg:pl-[268px]">
         <Header onOpenMenu={() => setMenuOpen(true)} />
         <main className="mx-auto w-full max-w-[1440px] px-4 pb-24 pt-5 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10">
+          <ScheduleReminderBanner />
           <Outlet />
         </main>
         <footer className="no-print mx-auto hidden max-w-[1440px] items-center justify-between px-4 pb-6 text-[10px] text-muted-foreground sm:px-6 lg:flex lg:px-8">
@@ -63,6 +68,7 @@ export function AppLayout() {
         </footer>
       </div>
 
+      <ScheduleReminderToasts />
       <MobileNav menuOpen={menuOpen} onOpenMenu={() => setMenuOpen(true)} />
     </div>
   )

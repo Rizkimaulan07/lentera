@@ -12,10 +12,8 @@ import { useAuth } from '@/providers/auth-provider'
 import { LoginPage } from '@/features/auth/login-page'
 import { ForgotPasswordPage } from '@/features/auth/forgot-password-page'
 import { DashboardPage } from '@/features/dashboard/dashboard-page'
-import { ScanPage } from '@/features/attendance/scan-page'
 import { ScanParticipantPage } from '@/features/attendance/scan-participant-page'
 import { ParticipantQrPage } from '@/features/attendance/participant-qr-page'
-import { QrDisplayPage } from '@/features/attendance/qr-display-page'
 import { AttendancePage } from '@/features/attendance/attendance-page'
 import { ActivitiesPage } from '@/features/activities/activities-page'
 import { ParticipantsPage } from '@/features/participants/participants-page'
@@ -67,14 +65,8 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
-            <Route
-              path="scan"
-              element={
-                <RequireRole roles={['participant']}>
-                  <ScanPage />
-                </RequireRole>
-              }
-            />
+            <Route path="scan" element={<Navigate to="/my-qr" replace />} />
+            <Route path="qr" element={<Navigate to="/scan-peserta" replace />} />
             <Route
               path="my-qr"
               element={
@@ -86,16 +78,8 @@ export default function App() {
             <Route
               path="scan-peserta"
               element={
-                <RequireRole roles={['supervisor', 'teacher', 'admin']}>
+                <RequireRole roles={['admin']}>
                   <ScanParticipantPage />
-                </RequireRole>
-              }
-            />
-            <Route
-              path="qr"
-              element={
-                <RequireRole roles={['supervisor', 'admin']}>
-                  <QrDisplayPage />
                 </RequireRole>
               }
             />

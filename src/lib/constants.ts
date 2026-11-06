@@ -131,11 +131,13 @@ export const QR_TYPE_LABELS: Record<QrType, string> = {
   attendance: 'Presensi harian',
   sports: 'Olahraga',
   dhuha: 'Dhuha',
+  meal: 'Ambil makan',
 }
 
 export const ACTIVITY_TYPE_LABELS = {
   sports: 'Olahraga',
   dhuha: 'Dhuha',
+  meal: 'Ambil makan',
 } as const
 
 export const DAY_LABELS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']

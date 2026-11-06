@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createSeedData } from '@/lib/seed'
+import { createSeedData, withDefaultActivities } from '@/lib/seed'
 import type { AppData } from '@/types'
 
 const DATA_KEY = 'lentera.data.v1'
@@ -9,7 +9,13 @@ function loadData(): AppData {
     const raw = localStorage.getItem(DATA_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as AppData
-      if (parsed.users && parsed.settings && parsed.participants) return parsed
+      if (parsed.users && parsed.settings && parsed.participants) {
+        return {
+          ...parsed,
+          activities: withDefaultActivities(parsed.activities),
+          activityAttendances: parsed.activityAttendances ?? [],
+        }
+      }
     }
   } catch {
     // Data rusak: jatuh kembali ke seed.

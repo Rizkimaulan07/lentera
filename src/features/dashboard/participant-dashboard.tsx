@@ -9,7 +9,6 @@ import {
   MapPin,
   Megaphone,
   QrCode,
-  ScanLine,
   Sparkles,
   Timer,
   TrendingUp,
@@ -27,6 +26,7 @@ import {
 import { Progress } from '@/components/ui/progress'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard } from '@/components/shared/stat-card'
+import { ActivityIcon } from '@/components/shared/activity-icon'
 import { JournalBadge } from '@/components/shared/status-badge'
 import { StatusDonut } from '@/components/charts/attendance-charts'
 import { useAuth } from '@/providers/auth-provider'
@@ -91,7 +91,7 @@ export function ParticipantDashboard() {
       return {
         tone: 'belum',
         title: 'Belum presensi hari ini',
-        description: 'Tunjukkan QR pribadimu ke pembimbing untuk mencatat kehadiran masuk.',
+        description: 'Tunjukkan QR pribadimu ke Koordinator PKL untuk mencatat kehadiran masuk.',
         cta: 'Tampilkan QR saya',
       }
     }
@@ -107,7 +107,7 @@ export function ParticipantDashboard() {
       return {
         tone: 'masuk',
         title: `Sudah presensi masuk pukul ${today.checkIn}`,
-        description: 'Tunjukkan QR kembali ke pembimbing saat pulang nanti.',
+        description: 'Tunjukkan QR kembali ke Koordinator PKL saat pulang nanti.',
         cta: 'Tampilkan QR pulang',
       }
     }
@@ -292,7 +292,7 @@ export function ParticipantDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Kegiatan rutin</CardTitle>
-            <CardDescription>Olahraga dan dhuha pada periode ini.</CardDescription>
+            <CardDescription>Olahraga, dhuha, dan ambil makan pada periode ini.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             {activities.map((activity) => (
@@ -300,7 +300,7 @@ export function ParticipantDashboard() {
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Sparkles className="h-4 w-4" />
+                      <ActivityIcon type={activity.type} className="h-4 w-4" />
                     </span>
                     <div>
                       <p className="text-xs font-bold">{activity.name}</p>
@@ -423,8 +423,8 @@ export function ParticipantDashboard() {
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           {[
-            { to: '/my-qr', icon: QrCode, label: 'QR Saya', desc: 'Tunjukkan ke pembimbing' },
-            { to: '/scan', icon: ScanLine, label: 'Scan QR', desc: 'Scan QR area & kegiatan' },
+            { to: '/my-qr', icon: QrCode, label: 'QR Saya', desc: 'Tunjukkan ke Koordinator PKL' },
+            { to: '/activities', icon: CalendarCheck, label: 'Kegiatan', desc: 'Jadwal olahraga, dhuha & makan' },
             { to: '/journals', icon: ClipboardCheck, label: 'Jurnal', desc: 'Isi kegiatan harian' },
             { to: '/leaves', icon: FileText, label: 'Izin', desc: 'Ajukan izin & sakit' },
             { to: '/assessments', icon: Award, label: 'Nilai saya', desc: 'Lihat hasil penilaian' },

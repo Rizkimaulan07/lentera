@@ -39,11 +39,7 @@ export function MobileNav({
                 <span
                   className={cn(
                     'flex h-8 w-8 items-center justify-center rounded-xl transition-all',
-                    item.href === '/scan'
-                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
-                      : isActive
-                        ? 'bg-primary/10'
-                        : '',
+                    isActive ? 'bg-primary/10' : '',
                   )}
                 >
                   <item.icon className="h-[18px] w-[18px]" />
