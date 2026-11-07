@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils'
 
+const baseUrl = import.meta.env.BASE_URL
+
 export function LogoMark({ className }: { className?: string }) {
   return (
     <span
@@ -9,7 +11,7 @@ export function LogoMark({ className }: { className?: string }) {
       )}
       aria-hidden="true"
     >
-      <img src="/len-mark.png" alt="" className="h-full w-full object-contain" />
+      <img src={`${baseUrl}len-mark.png`} alt="" className="h-full w-full object-contain" />
     </span>
   )
 }

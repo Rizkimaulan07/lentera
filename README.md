@@ -53,10 +53,15 @@ npm run lint      # oxlint
 
 ## Deploy ke GitHub Pages
 
-Workflow `.github/workflows/deploy.yml` membangun aplikasi dengan `VITE_BASE=/lentera/` lalu menerbitkannya ke GitHub Pages setiap ada push ke `main`.
+Situs produksi: <https://rizkimaulan07.github.io/lentera/>
 
-- URL: <https://rizkimaulan07.github.io/lentera/>
-- Aktifkan sekali di **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Aplikasi diterbitkan ke branch `gh-pages`, yang menjadi sumber GitHub Pages. Untuk memperbarui situs:
+
+```bash
+npm run deploy
+```
+
+Perintah tersebut membangun aplikasi dengan base `/lentera/`, menyiapkan `404.html` untuk rute SPA, lalu mendorong folder `dist` ke branch `gh-pages`.
 
 ## Alur demo yang disarankan
 
