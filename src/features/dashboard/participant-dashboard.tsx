@@ -242,14 +242,14 @@ export function ParticipantDashboard() {
         <StatCard
           label="Jurnal hari ini"
           value={todayJournal ? 'Terisi' : 'Belum'}
-          hint={todayJournal ? `Status: ${todayJournal.status === 'approved' ? 'disetujui' : todayJournal.status === 'revision' ? 'perlu revisi' : 'menunggu validasi'}` : 'Isi sebelum pulang'}
+          hint={todayJournal ? `Status: ${todayJournal.status === 'approved' ? 'disahkan' : todayJournal.status === 'revision' ? 'perlu revisi' : 'menunggu pengesahan'}` : 'Isi sebelum pulang'}
           icon={ClipboardCheck}
           tone={todayJournal ? 'sky' : 'rose'}
         />
         <StatCard
           label="Izin menunggu"
           value={pendingLeaves.length}
-          hint={pendingLeaves.length ? 'menunggu keputusan pembimbing' : 'tidak ada pengajuan aktif'}
+          hint={pendingLeaves.length ? 'menunggu Koordinator PKL' : 'tidak ada pengajuan aktif'}
           icon={FileText}
           tone="violet"
         />
@@ -339,7 +339,7 @@ export function ParticipantDashboard() {
           <CardHeader className="flex-col items-start justify-between gap-2 sm:flex-row">
             <div>
               <CardTitle>Jurnal terbaru</CardTitle>
-              <CardDescription>Aktivitas harian dan status validasinya.</CardDescription>
+              <CardDescription>Aktivitas harian dan status pengesahannya.</CardDescription>
             </div>
             <Link
               to="/journals"

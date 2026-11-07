@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   Clock3,
   FileImage,
+  Info,
   MessageSquare,
   PenLine,
   Plus,
@@ -39,6 +40,7 @@ import {
   participantsForSupervisor,
   participantsForTeacher,
 } from '@/lib/analytics'
+import { APPROVAL_ONLY_NOTE, canApprove } from '@/lib/permissions'
 import {
   cn,
   formatDate,
@@ -51,7 +53,7 @@ import type { Journal, JournalStatus } from '@/types'
 const tabs: { value: 'all' | JournalStatus; label: string }[] = [
   { value: 'all', label: 'Semua' },
   { value: 'pending', label: 'Menunggu' },
-  { value: 'approved', label: 'Disetujui' },
+  { value: 'approved', label: 'Disahkan' },
   { value: 'revision', label: 'Perlu revisi' },
 ]
 
@@ -101,7 +103,7 @@ export function JournalsPage() {
   const todayJournal = isParticipant
     ? baseJournals.find((journal) => journal.date === todayKey())
     : undefined
-  const canReview = user.role === 'supervisor' || user.role === 'admin'
+  const canReview = canApprove(user.role)
 
   const openNew = () => {
     setEditing(null)
@@ -171,13 +173,14 @@ export function JournalsPage() {
     })
     toast.success(
       editing
-        ? 'Perubahan jurnal dikirim ulang untuk validasi.'
-        : 'Jurnal berhasil dikirim ke pembimbing industri.',
+        ? 'Perubahan jurnal dikirim ulang untuk pengesahan.'
+        : 'Jurnal berhasil dikirim ke Koordinator PKL.',
     )
     setFormOpen(false)
   }
 
   const openReview = (journal: Journal) => {
+    if (!canReview) return
     setReview(journal)
     setReviewStatus('approved')
     setReviewComment('')
@@ -185,7 +188,7 @@ export function JournalsPage() {
   }
 
   const submitReview = () => {
-    if (!review) return
+    if (!review || !canReview) return
     if (reviewStatus === 'revision' && !reviewComment.trim()) {
       setReviewError('Tuliskan catatan revisi agar peserta tahu bagian yang perlu diperbaiki.')
       return
@@ -198,7 +201,7 @@ export function JournalsPage() {
     )
     toast.success(
       reviewStatus === 'approved'
-        ? 'Jurnal disetujui dan peserta mendapat notifikasi.'
+        ? 'Jurnal disahkan dan peserta mendapat notifikasi.'
         : 'Permintaan revisi dikirim ke peserta.',
     )
     setReview(null)
@@ -208,11 +211,19 @@ export function JournalsPage() {
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
         eyebrow="Jurnal harian"
-        title={isParticipant ? 'Jurnal kegiatan' : 'Validasi jurnal'}
+        title={
+          isParticipant
+            ? 'Jurnal kegiatan'
+            : canReview
+              ? 'Pengesahan jurnal'
+              : 'Pantau jurnal'
+        }
         description={
           isParticipant
             ? 'Catat kegiatan harianmu selama PKL. Jurnal yang rapi memudahkan penyusunan laporan akhir.'
-            : 'Tinjau jurnal peserta, beri persetujuan atau catatan revisi.'
+            : canReview
+              ? 'Tinjau jurnal peserta, beri pengesahan atau catatan revisi.'
+              : `Pantau jurnal peserta. ${APPROVAL_ONLY_NOTE}`
         }
         actions={
           isParticipant ? (
@@ -223,11 +234,21 @@ export function JournalsPage() {
           ) : (
             <Badge variant={pending.length ? 'warning' : 'success'} className="h-8 px-3">
               <ClipboardCheck className="h-3 w-3" />
-              {pending.length} menunggu validasi
+              {pending.length} menunggu pengesahan
             </Badge>
           )
         }
       />
+
+      {!isParticipant && !canReview ? (
+        <div className="flex items-start gap-2.5 rounded-xl border border-sky-500/25 bg-sky-500/[0.06] px-3.5 py-3 text-[11px] leading-relaxed text-sky-800 dark:text-sky-300">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Mode pantau. Pengesahan jurnal hanya dapat dilakukan oleh
+            Koordinator PKL.
+          </span>
+        </div>
+      ) : null}
 
       {isParticipant && !todayJournal ? (
         <Card className="border-dashed border-amber-500/30 bg-amber-500/[0.05]">
@@ -253,8 +274,8 @@ export function JournalsPage() {
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <StatCard label="Total jurnal" value={baseJournals.length} hint="pada periode aktif" icon={BookOpenCheck} tone="primary" />
-        <StatCard label="Menunggu" value={pending.length} hint="belum divalidasi" icon={Clock3} tone="amber" />
-        <StatCard label="Disetujui" value={approved.length} hint="sudah tervalidasi" icon={CheckCircle2} tone="emerald" />
+        <StatCard label="Menunggu" value={pending.length} hint="belum disahkan" icon={Clock3} tone="amber" />
+        <StatCard label="Disahkan" value={approved.length} hint="sudah disahkan" icon={CheckCircle2} tone="emerald" />
         <StatCard label="Perlu revisi" value={revision.length} hint="menunggu perbaikan" icon={RotateCcw} tone="rose" />
       </div>
 
@@ -325,7 +346,7 @@ export function JournalsPage() {
                     {canReview && journal.status === 'pending' ? (
                       <Button size="sm" onClick={() => openReview(journal)}>
                         <ClipboardCheck className="h-3.5 w-3.5" />
-                        Tinjau
+                        Sahkan
                       </Button>
                     ) : null}
                   </div>
@@ -353,7 +374,7 @@ export function JournalsPage() {
                     <div className="flex w-full items-start gap-2 rounded-xl border border-border/70 bg-muted/30 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground sm:w-auto">
                       <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                       <span>
-                        <span className="font-bold text-foreground">Catatan pembimbing: </span>
+                        <span className="font-bold text-foreground">Catatan Koordinator PKL: </span>
                         {journal.comment}
                       </span>
                     </div>
@@ -390,7 +411,7 @@ export function JournalsPage() {
             <DialogTitle>{editing ? 'Edit jurnal' : 'Isi jurnal harian'}</DialogTitle>
             <DialogDescription>
               Tulis kegiatan yang kamu lakukan, durasi, dan kendala bila ada. Jurnal akan
-              dikirim ke pembimbing untuk divalidasi.
+              dikirim ke Koordinator PKL untuk disahkan.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="mt-4 space-y-3">
@@ -502,9 +523,9 @@ export function JournalsPage() {
       <Dialog open={Boolean(review)} onOpenChange={(open) => !open && setReview(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tinjau jurnal</DialogTitle>
+            <DialogTitle>Sahkan jurnal</DialogTitle>
             <DialogDescription>
-              Beri persetujuan atau minta revisi dengan catatan yang jelas.
+              Beri pengesahan atau minta revisi dengan catatan yang jelas.
             </DialogDescription>
           </DialogHeader>
           {review ? (
@@ -535,7 +556,7 @@ export function JournalsPage() {
                   )}
                 >
                   <Check className="h-4 w-4" />
-                  Setujui
+                  Sahkan
                 </button>
                 <button
                   type="button"
@@ -581,7 +602,7 @@ export function JournalsPage() {
               variant={reviewStatus === 'approved' ? 'success' : 'destructive'}
               onClick={submitReview}
             >
-              {reviewStatus === 'approved' ? 'Setujui jurnal' : 'Kirim revisi'}
+              {reviewStatus === 'approved' ? 'Sahkan jurnal' : 'Kirim revisi'}
             </Button>
           </DialogFooter>
         </DialogContent>

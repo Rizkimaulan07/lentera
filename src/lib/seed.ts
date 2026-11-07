@@ -753,7 +753,7 @@ const announcements: Announcement[] = [
   {
     id: 'an_003',
     title: 'Batas pengumpulan laporan akhir PKL',
-    body: 'Laporan akhir PKL diunggah paling lambat tanggal 15 Desember 2026. Jurnal harian yang belum divalidasi akan memengaruhi komponen nilai laporan. Mohon segera lengkapi jurnal yang masih kosong.',
+    body: 'Laporan akhir PKL diunggah paling lambat tanggal 15 Desember 2026. Jurnal harian yang belum disahkan akan memengaruhi komponen nilai laporan. Mohon segera lengkapi jurnal yang masih kosong.',
     audience: 'participant',
     createdBy: 'u_admin',
     createdAt: stamp(subDays(now, 1), '09:15'),
@@ -808,7 +808,7 @@ const notifications: AppNotification[] = [
   {
     id: 'nt_005',
     userId: 'u_rina',
-    title: 'Jurnal baru menunggu validasi',
+    title: 'Jurnal baru menunggu pengesahan',
     body: 'Nabila Putri mengirim jurnal untuk tanggal ' + dateKey(subDays(now, 4)) + '.',
     read: false,
     createdAt: stamp(subDays(now, 1), '17:10'),
@@ -863,7 +863,7 @@ const logs: AppData['logs'] = [
   {
     id: 'log_003',
     userId: 'u_rina',
-    action: 'Memvalidasi jurnal',
+    action: 'Mengesahkan jurnal',
     object: 'Jurnal Nabila Putri',
     detail: 'Jurnal disetujui tanpa revisi.',
     at: stamp(subDays(now, 1), '09:20'),
@@ -873,7 +873,7 @@ const logs: AppData['logs'] = [
     userId: 'u_nabila',
     action: 'Mengirim jurnal',
     object: 'Jurnal harian',
-    detail: 'Jurnal tanggal ' + dateKey(subDays(now, 4)) + ' dikirim untuk validasi.',
+    detail: 'Jurnal tanggal ' + dateKey(subDays(now, 4)) + ' dikirim untuk pengesahan.',
     at: stamp(subDays(now, 4), '16:30'),
   },
   {

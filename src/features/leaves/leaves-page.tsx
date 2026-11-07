@@ -37,6 +37,7 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { useAuth } from '@/providers/auth-provider'
 import { useData } from '@/providers/data-provider'
 import { LEAVE_TYPE_LABELS } from '@/lib/constants'
+import { APPROVAL_ONLY_NOTE, canApprove } from '@/lib/permissions'
 import {
   participantsForSupervisor,
   participantsForTeacher,
@@ -101,7 +102,7 @@ export function LeavesPage() {
   const pending = baseLeaves.filter((leave) => leave.status === 'pending')
   const approved = baseLeaves.filter((leave) => leave.status === 'approved')
   const rejected = baseLeaves.filter((leave) => leave.status === 'rejected')
-  const canDecide = user.role === 'supervisor' || user.role === 'admin'
+  const canDecide = canApprove(user.role)
 
   const openForm = () => {
     setForm({
@@ -144,18 +145,19 @@ export function LeavesPage() {
       reason: form.reason.trim(),
       attachmentName: form.attachmentName || undefined,
     })
-    toast.success('Pengajuan izin dikirim ke pembimbing industri.')
+    toast.success('Pengajuan izin dikirim ke Koordinator PKL.')
     setFormOpen(false)
   }
 
   const openDecision = (leave: LeaveRequest, action: 'approved' | 'rejected') => {
+    if (!canDecide) return
     setDecision({ leave, action })
     setDecisionNote('')
     setDecisionError('')
   }
 
   const submitDecision = () => {
-    if (!decision) return
+    if (!decision || !canDecide) return
     if (decision.action === 'rejected' && !decisionNote.trim()) {
       setDecisionError('Catatan alasan penolakan wajib diisi.')
       return
@@ -163,7 +165,7 @@ export function LeavesPage() {
     decideLeave(
       decision.leave.id,
       decision.action,
-      decisionNote.trim() || 'Disetujui oleh pembimbing.',
+      decisionNote.trim() || 'Disetujui oleh Koordinator PKL.',
       user.id,
     )
     toast.success(
@@ -257,11 +259,19 @@ export function LeavesPage() {
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
         eyebrow="Perizinan"
-        title={isParticipant ? 'Izin & sakit' : 'Persetujuan izin'}
+        title={
+          isParticipant
+            ? 'Izin & sakit'
+            : canDecide
+              ? 'Pengesahan izin'
+              : 'Pantau izin'
+        }
         description={
           isParticipant
             ? 'Ajukan izin dengan lampiran bukti. Izin yang disetujui otomatis memperbarui presensi.'
-            : 'Tinjau pengajuan izin peserta. Keputusan otomatis tersinkron dengan data presensi.'
+            : canDecide
+              ? 'Tinjau dan sahkan pengajuan izin peserta. Keputusan otomatis tersinkron dengan data presensi.'
+              : `Pantau pengajuan izin peserta. ${APPROVAL_ONLY_NOTE}`
         }
         actions={
           isParticipant ? (
@@ -278,6 +288,16 @@ export function LeavesPage() {
         }
       />
 
+      {!isParticipant && !canDecide ? (
+        <div className="flex items-start gap-2.5 rounded-xl border border-sky-500/25 bg-sky-500/[0.06] px-3.5 py-3 text-[11px] leading-relaxed text-sky-800 dark:text-sky-300">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Mode pantau. Pengesahan izin hanya dapat dilakukan oleh Koordinator
+            PKL.
+          </span>
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <StatCard
           label="Total pengajuan"
@@ -289,7 +309,7 @@ export function LeavesPage() {
         <StatCard
           label="Menunggu"
           value={pending.length}
-          hint={pending.length ? 'perlu ditinjau' : 'tidak ada antrean'}
+          hint={pending.length ? 'perlu disahkan' : 'tidak ada antrean'}
           icon={Clock3}
           tone="amber"
         />
@@ -359,9 +379,10 @@ export function LeavesPage() {
         <CardContent className="flex items-start gap-3 p-4">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Alur persetujuan: peserta mengajukan, pembimbing industri meninjau, lalu
-            sistem memperbarui presensi pada tanggal terkait. Guru pembimbing dapat
-            memantau status dan catatan keputusan.
+            Alur pengesahan: peserta mengajukan, Koordinator PKL meninjau dan
+            mengesahkan, lalu sistem memperbarui presensi pada tanggal terkait.
+            Pembimbing industri dan guru pembimbing dapat memantau status dan
+            catatan keputusan.
           </p>
         </CardContent>
       </Card>
@@ -371,8 +392,8 @@ export function LeavesPage() {
           <DialogHeader>
             <DialogTitle>Ajukan izin</DialogTitle>
             <DialogDescription>
-              Lengkapi data izin dan lampiran. Pengajuan akan dikirim ke pembimbing
-              industrimu.
+              Lengkapi data izin dan lampiran. Pengajuan akan dikirim ke
+              Koordinator PKL.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="mt-4 space-y-3">

@@ -16,6 +16,7 @@ import {
   uid,
 } from '@/lib/utils'
 import { ACTIVITY_TYPE_LABELS } from '@/lib/constants'
+import { canApprove } from '@/lib/permissions'
 import type {
   Activity,
   ActivityAttendance,
@@ -197,6 +198,12 @@ function participantName(data: AppData, participantId: string) {
   return user?.name ?? 'Peserta'
 }
 
+function coordinatorIds(data: AppData) {
+  return data.users
+    .filter((item) => item.role === 'admin' && item.active)
+    .map((item) => item.id)
+}
+
 function applyLeaveToAttendance(
   data: AppData,
   leave: LeaveRequest,
@@ -279,13 +286,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => {
       const next = { ...prev, leaves: [leave, ...prev.leaves] }
       if (participant) {
-        pushNotification(
-          next,
-          participant.supervisorId,
-          'Pengajuan izin baru',
-          `${participantName(next, participant.id)} mengajukan izin ${input.startDate === input.endDate ? input.startDate : `${input.startDate} – ${input.endDate}`}.`,
-          '/leaves',
-        )
+        coordinatorIds(next).forEach((coordinatorId) => {
+          pushNotification(
+            next,
+            coordinatorId,
+            'Pengajuan izin baru',
+            `${participantName(next, participant.id)} mengajukan izin ${input.startDate === input.endDate ? input.startDate : `${input.startDate} – ${input.endDate}`}.`,
+            '/leaves',
+          )
+        })
         pushLog(
           next,
           participant.userId,
@@ -300,6 +309,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }
 
   const decideLeave: DataContextValue['decideLeave'] = (id, decision, note, actorId) => {
+    const actor = dataRef.current.users.find((item) => item.id === actorId)
+    if (!actor || !canApprove(actor.role)) return
     const leave = dataRef.current.leaves.find((item) => item.id === id)
     if (!leave) return
     setData((prev) => {
@@ -369,13 +380,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         (item) => item.id === input.participantId,
       )
       if (participant) {
-        pushNotification(
-          next,
-          participant.supervisorId,
-          'Jurnal baru menunggu validasi',
-          `${participantName(next, participant.id)} mengirim jurnal tanggal ${input.date}.`,
-          '/journals',
-        )
+        coordinatorIds(next).forEach((coordinatorId) => {
+          pushNotification(
+            next,
+            coordinatorId,
+            'Jurnal baru menunggu pengesahan',
+            `${participantName(next, participant.id)} mengirim jurnal tanggal ${input.date}.`,
+            '/journals',
+          )
+        })
         pushLog(
           next,
           participant.userId,
@@ -395,6 +408,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     comment,
     reviewerId,
   ) => {
+    const reviewer = dataRef.current.users.find((item) => item.id === reviewerId)
+    if (!reviewer || !canApprove(reviewer.role)) return
     setData((prev) => {
       const journal = prev.journals.find((item) => item.id === id)
       if (!journal) return prev
@@ -419,9 +434,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         pushNotification(
           next,
           participant.userId,
-          status === 'approved' ? 'Jurnal disetujui' : 'Jurnal perlu revisi',
+          status === 'approved' ? 'Jurnal disahkan' : 'Jurnal perlu revisi',
           status === 'approved'
-            ? `Jurnal tanggal ${journal.date} telah disetujui.`
+            ? `Jurnal tanggal ${journal.date} telah disahkan oleh Koordinator PKL.`
             : `Jurnal tanggal ${journal.date} perlu direvisi. Catatan: ${comment}`,
           '/journals',
         )
@@ -429,7 +444,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       pushLog(
         next,
         reviewerId,
-        status === 'approved' ? 'Memvalidasi jurnal' : 'Meminta revisi jurnal',
+        status === 'approved' ? 'Mengesahkan jurnal' : 'Meminta revisi jurnal',
         `Jurnal ${journal.date} · ${participantName(next, journal.participantId)}`,
         comment || 'Tanpa catatan tambahan.',
       )
@@ -1059,6 +1074,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     input,
   ) => {
     const current = dataRef.current
+    const actor = current.users.find((item) => item.id === input.actorId)
+    if (!actor || !canApprove(actor.role)) {
+      return {
+        ok: false,
+        message: 'Pengesahan presensi manual hanya dapat dilakukan Koordinator PKL.',
+      }
+    }
     const participant = current.participants.find(
       (item) => item.id === input.participantId,
     )

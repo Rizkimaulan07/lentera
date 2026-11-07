@@ -96,14 +96,14 @@ export function SupervisorDashboard() {
         <StatCard
           label="Izin menunggu"
           value={pendingLeaves.length}
-          hint={pendingLeaves.length ? 'perlu keputusanmu' : 'semua sudah ditinjau'}
+          hint={pendingLeaves.length ? 'menunggu Koordinator PKL' : 'semua sudah disahkan'}
           icon={FileText}
           tone="amber"
         />
         <StatCard
           label="Jurnal menunggu"
           value={pendingJournals.length}
-          hint={pendingJournals.length ? 'perlu validasi' : 'tidak ada antrean'}
+          hint={pendingJournals.length ? 'menunggu pengesahan' : 'tidak ada antrean'}
           icon={ClipboardCheck}
           tone="sky"
         />
@@ -164,9 +164,9 @@ export function SupervisorDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BellRing className="h-4 w-4 text-accent-foreground" />
-              Perlu tindakan
+              Status pengesahan
             </CardTitle>
-            <CardDescription>Antrean persetujuan dan validasi.</CardDescription>
+            <CardDescription>Antrean yang menunggu Koordinator PKL.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3">
@@ -207,8 +207,8 @@ export function SupervisorDashboard() {
               </div>
               <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
                 {pendingJournals.length
-                  ? 'Jurnal peserta sudah dikirim dan menunggu catatanmu.'
-                  : 'Semua jurnal sudah ditinjau. Kerja bagus!'}
+                  ? 'Jurnal peserta sudah dikirim dan menunggu pengesahan Koordinator PKL.'
+                  : 'Semua jurnal sudah disahkan. Kerja bagus!'}
               </p>
               <Link
                 to="/journals"

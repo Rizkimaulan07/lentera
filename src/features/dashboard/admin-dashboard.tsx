@@ -116,14 +116,14 @@ export function AdminDashboard() {
         <StatCard
           label="Izin menunggu"
           value={pendingLeaves.length}
-          hint="pembimbing perlu meninjau"
+          hint="perlu pengesahanmu"
           icon={FileText}
           tone="amber"
         />
         <StatCard
           label="Jurnal menunggu"
           value={pendingJournals.length}
-          hint="validasi pembimbing"
+          hint="menunggu pengesahan"
           icon={ClipboardCheck}
           tone="sky"
         />
@@ -252,6 +252,16 @@ export function AdminDashboard() {
           </CardHeader>
           <CardContent className="grid gap-2">
             {[
+              {
+                to: '/leaves',
+                icon: FileText,
+                label: `Pengesahan izin (${pendingLeaves.length})`,
+              },
+              {
+                to: '/journals',
+                icon: ClipboardCheck,
+                label: `Pengesahan jurnal (${pendingJournals.length})`,
+              },
               { to: '/admin/users', icon: Users, label: 'Kelola akun pengguna' },
               { to: '/admin/master', icon: Building2, label: 'Master data PKL' },
               { to: '/admin/settings', icon: Settings, label: 'Presensi & penilaian' },

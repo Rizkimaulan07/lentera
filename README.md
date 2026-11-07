@@ -10,8 +10,9 @@
 - **QR pribadi peserta** — setiap akun peserta PKL memiliki QR identitas sendiri yang dipindai Koordinator PKL lewat menu **Scan Peserta**.
 - **Kegiatan rutin** — presensi Olahraga setiap Jumat, dua sesi Dhuha pada pagi hari, dan ambil makan pukul 12.00–13.00. Koordinator memilih jenis presensi sebelum memindai QR peserta, dengan validasi hari dan jam sesi.
 - **Pengingat otomatis** — banner dan notifikasi muncul saat sesi kegiatan dimulai, termasuk pengingat istirahat dan ambil makan pukul 12.00–13.00, presensi masuk, dan presensi pulang.
-- **Perizinan** — pengajuan izin/sakit, lampiran, persetujuan pembimbing, dan pembaruan presensi otomatis.
-- **Jurnal harian** — pengiriman, validasi, catatan revisi, dan riwayat jurnal.
+- **Perizinan** — pengajuan izin/sakit, lampiran, pengesahan oleh Koordinator PKL, dan pembaruan presensi otomatis.
+- **Jurnal harian** — pengiriman, pengesahan oleh Koordinator PKL, catatan revisi, dan riwayat jurnal.
+- **Pengesahan terpusat** — keputusan izin, pengesahan jurnal, dan presensi manual hanya dapat dilakukan oleh Koordinator PKL. Pembimbing industri dan guru pembimbing tetap dapat memantau.
 - **Penilaian** — komponen berbobot, nilai disiplin otomatis dari kehadiran, finalisasi terkunci, serta lembar nilai siap cetak.
 - **Dashboard per peran** — admin, pembimbing industri, guru pembimbing, dan peserta.
 - **Laporan** — rekap kehadiran, jurnal, nilai, peringkat, ekspor CSV, dan cetak.
@@ -25,9 +26,9 @@ Semua akun menggunakan kata sandi **`lentera123`**.
 | Peran | Nama | Username | Fokus demo |
 | --- | --- | --- | --- |
 | Peserta PKL | Nabila Putri | `nabila` | QR pribadi, jurnal, izin, nilai |
-| Pembimbing Industri | Rina Kartika | `rina` | Validasi, penilaian, monitoring |
+| Pembimbing Industri | Rina Kartika | `rina` | Monitoring, penilaian, tampilkan QR |
 | Guru Pembimbing | Ahmad Fauzi | `ahmad` | Monitoring siswa bimbingan |
-| Admin PKL | Koordinator PKL | `admin` | Scan QR peserta, pengguna, master data, pengaturan |
+| Admin PKL | Koordinator PKL | `admin` | Pengesahan izin/jurnal, scan QR peserta, pengguna, master data, pengaturan |
 
 Peserta juga dapat masuk menggunakan **NIS** (contoh: `221001` untuk Nabila).
 
@@ -50,6 +51,13 @@ npm run preview   # pratinjau hasil build
 npm run lint      # oxlint
 ```
 
+## Deploy ke GitHub Pages
+
+Workflow `.github/workflows/deploy.yml` membangun aplikasi dengan `VITE_BASE=/lentera/` lalu menerbitkannya ke GitHub Pages setiap ada push ke `main`.
+
+- URL: <https://rizkimaulan07.github.io/lentera/>
+- Aktifkan sekali di **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
 ## Alur demo yang disarankan
 
 1. Masuk sebagai **admin** (**Koordinator PKL**), lalu buka menu **Scan Peserta**.
@@ -58,7 +66,7 @@ npm run lint      # oxlint
 4. Masuk sebagai **Nabila** (`nabila`), buka menu **QR Saya**, lalu tunjukkan QR pribadinya kepada Koordinator PKL.
 5. Koordinator memindai QR Nabila (atau menekan tombol **Scan** pada daftar peserta untuk simulasi). Presensi masuk akan tercatat; pindai sekali lagi untuk presensi pulang.
 6. Untuk kegiatan rutin, pilih jenis presensi yang sesuai pada jam sesinya. Contoh: **Ambil makan** pukul 12.00–13.00 atau **Olahraga** pada hari Jumat.
-7. Masuk sebagai **Rina** atau **Ahmad** untuk memvalidasi izin/jurnal, melihat rekap, dan mengisi penilaian.
+7. Masuk sebagai **Rina** atau **Ahmad** untuk memantau izin/jurnal, melihat rekap, dan mengisi penilaian. Pengesahan izin dan jurnal hanya dapat dilakukan oleh **admin** (**Koordinator PKL**).
 
 ### Presensi dengan QR pribadi peserta
 

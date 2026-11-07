@@ -87,7 +87,7 @@ export function TeacherDashboard() {
         <StatCard
           label="Izin menunggu"
           value={pendingLeaves.length}
-          hint="diproses pembimbing industri"
+          hint="diproses Koordinator PKL"
           icon={FileText}
           tone="amber"
         />
@@ -195,7 +195,7 @@ export function TeacherDashboard() {
             <div className="flex items-center justify-between rounded-xl border border-border/70 p-3">
               <span className="flex items-center gap-2 text-[11px] font-semibold">
                 <ClipboardCheck className="h-3.5 w-3.5 text-sky-500" />
-                Jurnal menunggu validasi
+                Jurnal menunggu pengesahan
               </span>
               <Badge variant="info">{pendingJournals.length}</Badge>
             </div>

@@ -56,6 +56,7 @@ import { useData } from '@/providers/data-provider'
 import {
   ATTENDANCE_STATUS_META,
 } from '@/lib/constants'
+import { canApprove } from '@/lib/permissions'
 import {
   participantsForSupervisor,
   participantsForTeacher,
@@ -102,6 +103,7 @@ export function AttendancePage() {
   if (!user) return null
 
   const ownParticipant = getParticipantByUserId(data.participants, user.id)
+  const canManual = canApprove(user.role)
   const baseParticipants: Participant[] =
     user.role === 'participant'
       ? ownParticipant
@@ -150,6 +152,7 @@ export function AttendancePage() {
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   const openManual = () => {
+    if (!canManual) return
     setManualError('')
     setManualForm({
       participantId: visibleParticipants[0]?.id ?? '',
@@ -164,6 +167,10 @@ export function AttendancePage() {
 
   const submitManual = (event: React.FormEvent) => {
     event.preventDefault()
+    if (!canManual) {
+      setManualError('Pengesahan presensi manual hanya dapat dilakukan Koordinator PKL.')
+      return
+    }
     if (!manualForm.participantId) {
       setManualError('Pilih peserta terlebih dahulu.')
       return
@@ -327,7 +334,7 @@ export function AttendancePage() {
                 <Printer className="h-4 w-4" />
                 Cetak
               </Button>
-              {user.role !== 'teacher' ? (
+              {canManual ? (
                 <Button onClick={openManual}>
                   <Plus className="h-4 w-4" />
                   Presensi manual

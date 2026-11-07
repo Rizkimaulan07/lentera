@@ -114,11 +114,11 @@ export const JOURNAL_STATUS_META: Record<
   { label: string; badge: string }
 > = {
   pending: {
-    label: 'Menunggu validasi',
+    label: 'Menunggu pengesahan',
     badge: 'bg-amber-500/14 text-amber-700 dark:text-amber-300 border-amber-500/25',
   },
   approved: {
-    label: 'Disetujui',
+    label: 'Disahkan',
     badge: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
   },
   revision: {
